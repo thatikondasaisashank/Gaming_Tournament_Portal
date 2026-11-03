@@ -1,0 +1,19 @@
+/* React conversion compatibility fixes; the original GameZone theme is retained. */
+button:disabled { opacity: .65; cursor: not-allowed; transform: none !important; }
+.nav-links.mobile-open { display: flex; }
+.form-message { margin: 0; font-size: 12px; }
+.form-message.error { color: var(--danger); }
+.form-message.success { color: var(--accent); }
+.admin-form .form-message { text-transform: none; letter-spacing: 0; }
+.admin-form select option, .filter-bar select option { background: #0b0e14; color: #fff; }
+.promo-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.video-wrap { position: relative; overflow: hidden; }
+.video-fallback { z-index: 0; }
+.video-overlay, .video-caption { z-index: 2; }
+.hero-image-slot img { position: relative; z-index: 1; }
+.hero-image-slot.image-fallback img { display: none; }
+.admin-table-wrap { width: 100%; }
+@media (max-width: 720px) {
+  .navbar { position: sticky; }
+  .nav-links.mobile-open { position: absolute; top: 76px; left: 12px; right: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--line); border-radius: 14px; background: #0b0e14; z-index: 100; }
+}
