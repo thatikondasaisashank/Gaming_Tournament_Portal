@@ -1,8 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useStore, formatDate, formatTime } from './store.jsx';
-import { Brand, DashboardHeader, EmptyState, StatCard, TournamentCard, TournamentModal, TournamentTable } from './components.jsx';
-
+import {
+    Brand,
+    DashboardHeader,
+    EmptyState,
+    StatCard,
+    TournamentCard,
+    TournamentModal,
+    TournamentTable,
+    getGameImage
+} from './components.jsx';
 export function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -127,7 +135,7 @@ export function AuthPage({ mode }) {
         <button className="btn btn-primary btn-full" type="submit">{isSignup ? 'Create Account' : 'Enter Arena'} <span>↗</span></button>
         {message.text && <p className={`form-message ${message.type}`}>{message.text}</p>}
       </form>
-      {isSignup ? <><div className="divider"><span>ROLE INFORMATION</span></div><div className="demo-box"><p><strong>Player</strong><br />Browse and register for gaming tournaments.</p><p><strong>Organizer</strong><br />Create and manage tournaments and registrations.</p></div></> : <><div className="divider"><span>DEMO ACCESS</span></div><div className="demo-box"><p><strong>Admin</strong><br />admin@gamezone.com<br />admin123</p><p><strong>Organizer</strong><br />organizer@gamezone.com<br />organizer123</p></div></>}
+      {isSignup ? <><div className="divider"><span>ROLE INFORMATION</span></div><div className="demo-box"><p><strong>Player</strong><br />Browse and register for gaming tournaments.</p><p><strong>Organizer</strong><br />Create and manage tournaments and registrations.</p></div></> : <></>}
       <p className="switch-text">{isSignup ? 'Already have an account?' : "Don't have an account?"} <Link to={isSignup ? '/login' : '/signup'}>{isSignup ? 'Login →' : 'Create one →'}</Link></p>
     </div></div>
   </div>;
@@ -152,14 +160,136 @@ export function UserTournaments() {
 
 export function UserTournamentDetails() {
   const [searchParams] = useSearchParams();
-  const { session, tournaments, registrations, registerForTournament, notify } = useStore();
   const id = searchParams.get('id');
-  const tournament = tournaments.find((item) => item.id === id);
-  if (!tournament) return <><DashboardHeader role="user" active="/user/tournaments" /><main className="dashboard-main"><EmptyState>Tournament not found. <Link to="/user/tournaments">Go back →</Link></EmptyState></main></>;
-  const count = registrations.filter((item) => item.tournamentId === id).length;
-  const joined = registrations.some((item) => item.tournamentId === id && item.userEmail === session.email);
-  const handleRegister = () => { const result = registerForTournament(id); notify(result.message, result.ok ? 'success' : 'error'); };
-  return <><DashboardHeader role="user" active="/user/tournaments" /><main className="dashboard-main"><Link className="back-link" to="/user/tournaments">← Back to tournaments</Link><section className="detail-page"><div className="detail-hero"><div><span className="eyebrow">{tournament.game} • {tournament.type}</span><h1>{tournament.name}</h1><p>{tournament.description}</p></div><button className={`btn ${joined ? 'btn-ghost' : 'btn-primary'}`} onClick={handleRegister} disabled={joined}>{joined ? 'Registered' : 'Register Now ↗'}</button></div><div className="detail-content"><div className="detail-box"><h3>Tournament Overview</h3><div className="detail-grid"><div><small>Date</small><strong>{formatDate(tournament.date)}</strong></div><div><small>Time</small><strong>{formatTime(tournament.time)}</strong></div><div><small>Prize Pool</small><strong>{tournament.prize}</strong></div><div><small>Players</small><strong>{count}/{tournament.slots}</strong></div></div><p style={{ color: 'var(--muted)', fontSize: 12, marginTop: 18 }}>Registration is saved locally for this demonstration project.</p></div><div className="detail-box"><h3>Player</h3><p style={{ fontSize: 13 }}><strong>{session.name}</strong><br /><span style={{ color: 'var(--muted)' }}>{session.email}</span></p></div></div></section></main></>;
+
+  const {
+    session,
+    tournaments,
+    registrations,
+    registerForTournament,
+    unregisterFromTournament,
+    notify
+  } = useStore();
+
+  const tournament = tournaments.find(
+    (item) => String(item.id) === String(id)
+  );
+
+  const count = registrations.filter(
+    (item) => String(item.tournamentId) === String(id)
+  ).length;
+
+  const joined = registrations.some(
+    (item) =>
+      String(item.tournamentId) === String(id) &&
+      item.userEmail === session?.email
+  );
+
+  const handleRegister = () => {
+    const result = registerForTournament(id);
+    notify(result.message, result.ok ? 'success' : 'error');
+  };
+
+  const handleUnregister = () => {
+    const result = unregisterFromTournament(id);
+    notify(result.message, result.ok ? 'success' : 'error');
+  };
+
+  if (!tournament) {
+    return (
+      <>
+        <DashboardHeader role="user" active="/user/tournaments" />
+        <main className="dashboard-main">
+          <EmptyState>
+            Tournament not found. <Link to="/user/tournaments">Go back →</Link>
+          </EmptyState>
+        </main>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <DashboardHeader role="user" active="/user/tournaments" />
+      <main className="dashboard-main">
+        <Link className="back-link" to="/user/tournaments">
+          ← Back to tournaments
+        </Link>
+
+        <section className="detail-page">
+          <div className="detail-hero">
+            <img
+              className="detail-hero-image"
+              src={getGameImage(tournament.game)}
+              alt={tournament.game}
+            />
+
+            <div className="detail-hero-content">
+              <span className="eyebrow">
+                {tournament.game} • {tournament.type}
+              </span>
+              <h1>{tournament.name}</h1>
+              <p>{tournament.description}</p>
+            </div>
+
+            {joined ? (
+              <button
+                type="button"
+                className="btn btn-unregister"
+                onClick={handleUnregister}
+              >
+                Unregister
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleRegister}
+              >
+                Register Now ↗
+              </button>
+            )}
+          </div>
+
+          <div className="detail-content">
+            <div className="detail-box">
+              <h3>Tournament Overview</h3>
+              <div className="detail-grid">
+                <div>
+                  <small>Date</small>
+                  <strong>{formatDate(tournament.date)}</strong>
+                </div>
+                <div>
+                  <small>Time</small>
+                  <strong>{formatTime(tournament.time)}</strong>
+                </div>
+                <div>
+                  <small>Prize Pool</small>
+                  <strong>{tournament.prize}</strong>
+                </div>
+                <div>
+                  <small>Players</small>
+                  <strong>{count}/{tournament.slots}</strong>
+                </div>
+              </div>
+              <p style={{ color: 'var(--muted)', fontSize: 12, marginTop: 18 }}>
+                Registration is saved locally for this demonstration project.
+              </p>
+            </div>
+
+            <div className="detail-box">
+              <h3>Player</h3>
+              <p style={{ fontSize: 13 }}>
+                <strong>{session?.name}</strong>
+                <br />
+                <span style={{ color: 'var(--muted)' }}>{session?.email}</span>
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </>
+  );
 }
 
 export function MyTournaments() {
@@ -195,7 +325,22 @@ export function OrganizerDashboard() {
     <section className="welcome-banner organizer-banner"><div><span className="eyebrow">ORGANIZER CONSOLE</span><h1>Run the <span>arena.</span></h1><p>Create tournaments, control schedules and manage participants from one place.</p></div><Link className="btn btn-primary" to="/organizer/tournaments">Manage Tournaments ↗</Link></section>
     <section className="stat-grid"><StatCard label="MY TOURNAMENTS" value={mine.length} note="Created or assigned to you" /><StatCard label="REGISTRATIONS" value={myRegistrations.length} note="Total player entries" /><StatCard label="UPCOMING" value={upcoming.length} note="Scheduled events" /><StatCard label="PLAYERS" value={uniquePlayers} note="Unique participants" /></section>
     <section className="dashboard-section"><div className="section-heading compact"><div><span className="eyebrow">SCHEDULE</span><h2>Upcoming <span>Events</span></h2></div><Link to="/organizer/registrations">View registrations →</Link></div>
-      <div className="admin-list">{upcoming.slice(0, 6).length ? upcoming.slice(0, 6).map((item) => <div className="admin-row" key={item.id}><div><strong>{item.name}</strong><span>{item.game} • {formatDate(item.date)} • {formatTime(item.time)}</span></div><span className={`status-${String(item.status || 'Upcoming').toLowerCase()}`}>{String(item.status || 'Upcoming').toUpperCase()}</span><span>{registrations.filter((entry) => entry.tournamentId === item.id).length}/{item.slots} players</span><div className="admin-row-actions"><Link className="mini-btn" to="/organizer/tournaments">Manage</Link></div></div>) : <div className="loading">No upcoming tournaments yet.</div>}</div>
+      <div className="admin-list">{upcoming.slice(0, 6).length ? upcoming.slice(0, 6).map((item) => <div className="admin-row" key={item.id}><div className="organizer-event-info">
+
+    <img
+        src={getGameImage(item.game)}
+        alt={item.game}
+    />
+
+    <div>
+        <strong>{item.name}</strong>
+
+        <span>
+            {item.game} • {formatDate(item.date)} • {formatTime(item.time)}
+        </span>
+    </div>
+
+</div><span className={`status-${String(item.status || 'Upcoming').toLowerCase()}`}>{String(item.status || 'Upcoming').toUpperCase()}</span><span>{registrations.filter((entry) => entry.tournamentId === item.id).length}/{item.slots} players</span><div className="admin-row-actions"><Link className="mini-btn" to="/organizer/tournaments">Manage</Link></div></div>) : <div className="loading">No upcoming tournaments yet.</div>}</div>
     </section>
   </main></>;
 }
@@ -243,7 +388,24 @@ export function OrganizerRegistrations() {
     <div className="registration-filter"><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">All my tournaments</option>{mine.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div>
     <section className="admin-table-wrap"><table><thead><tr><th>Player</th><th>Email</th><th>Tournament</th><th>Registered</th><th>Action</th></tr></thead><tbody>{visible.length ? visible.map((entry) => {
       const tournament = mine.find((item) => item.id === entry.tournamentId);
-      return <tr key={entry.id}><td><strong>{entry.userName}</strong></td><td>{entry.userEmail}</td><td>{tournament?.name || 'Unknown'}</td><td>{new Date(entry.registeredAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td><td><button type="button" className="mini-btn danger" onClick={() => handleRemove(entry)}>Remove</button></td></tr>;
+      return <tr key={entry.id}><td><strong>{entry.userName}</strong></td><td>{entry.userEmail}</td><td>
+    <div className="registration-tournament-cell">
+
+        {tournament && (
+         
+            <img
+            
+                src={getGameImage(tournament.game)}
+                alt={tournament.game}
+            />
+        )}
+
+        <span>
+            {tournament?.name || 'Unknown'}
+        </span>
+
+    </div>
+</td><td>{new Date(entry.registeredAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td><td><button type="button" className="mini-btn danger" onClick={() => handleRemove(entry)}>Remove</button></td></tr>;
     }) : <tr><td colSpan="5">No registrations found.</td></tr>}</tbody></table></section>
   </main></>;
 }

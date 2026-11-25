@@ -211,9 +211,40 @@ useEffect(() => {
   };
 
   const unregisterFromTournament = (tournamentId, email = session?.email) => {
-    setRegistrations((current) => current.filter((item) => !(item.tournamentId === tournamentId && item.userEmail === email)));
-  };
 
+    if (!session || session.role !== 'user') {
+        return {
+            ok: false,
+            message: 'Only players can unregister.'
+        };
+    }
+
+    const exists = registrations.some(
+        item =>
+            item.tournamentId === tournamentId &&
+            item.userEmail === email
+    );
+
+    if (!exists) {
+        return {
+            ok: false,
+            message: 'You are not registered for this tournament.'
+        };
+    }
+
+    setRegistrations(current =>
+        current.filter(
+            item =>
+                !(item.tournamentId === tournamentId &&
+                  item.userEmail === email)
+        )
+    );
+
+    return {
+        ok: true,
+        message: 'Successfully unregistered from tournament.'
+    };
+};
   const removeRegistration = (registrationId) => {
     setRegistrations((current) => current.filter((item) => item.id !== registrationId));
   };

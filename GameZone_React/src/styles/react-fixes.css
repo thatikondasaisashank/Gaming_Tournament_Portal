@@ -17,3 +17,257 @@ button:disabled { opacity: .65; cursor: not-allowed; transform: none !important;
   .navbar { position: sticky; }
   .nav-links.mobile-open { position: absolute; top: 76px; left: 12px; right: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--line); border-radius: 14px; background: #0b0e14; z-index: 100; }
 }
+
+/* =========================================================
+   HERO LAYERS — FORCE TEXT & ANIMATIONS IN FRONT OF PHOTO
+   Keep this block at the very bottom of react-fixes.css.
+   ========================================================= */
+.hero-section {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Keep the copy column readable and above neighboring layers. */
+.hero-copy {
+  position: relative !important;
+  z-index: 15 !important;
+}
+
+.hero-visual {
+  position: relative !important;
+  z-index: 10 !important;
+  isolation: isolate;
+}
+
+.hero-card {
+  position: relative !important;
+  z-index: 1 !important;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-image-slot {
+  position: relative !important;
+  z-index: 0 !important;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Photo is the bottom-most layer. */
+.hero-image-slot > img {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* All CSS-generated motion sits above the photo. */
+.hero-image-slot > .fallback-gamer {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 5 !important;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.hero-image-slot .silhouette { z-index: 1 !important; }
+.hero-image-slot .energy-ring { z-index: 3 !important; }
+.hero-image-slot .helmet { position: relative; z-index: 6 !important; }
+.hero-image-slot .pixel { z-index: 7 !important; }
+
+/* LIVE / SEASON text and any card labels stay above the animation. */
+.hero-card > .hero-card-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 12 !important;
+  display: flex;
+  pointer-events: none;
+}
+
+/* Floating labels/badges must sit above the card, not behind it. */
+.hero-visual > .floating-badge {
+  position: absolute !important;
+  z-index: 25 !important;
+  pointer-events: auto;
+}
+
+/* Keep the video text and effects over the video/image too. */
+.video-wrap {
+  position: relative;
+  isolation: isolate;
+}
+.video-wrap > .promo-video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-wrap > .video-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.video-wrap > .video-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.video-wrap > .video-caption {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+}
+/* =====================================
+   TOURNAMENT IMAGES
+===================================== */
+
+.tournament-banner {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.tournament-banner-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.65;
+    z-index: 0;
+    transition: transform 0.5s ease;
+}
+
+.tournament-card:hover .tournament-banner-image {
+    transform: scale(1.08);
+}
+
+.tournament-banner::after {
+    z-index: 1;
+    pointer-events: none;
+}
+
+.tournament-banner .game-label,
+.tournament-banner .type-chip {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* Organizer tournament table */
+
+.tournament-table-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tournament-table-title img {
+    width: 65px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+}
+
+
+/* Organizer dashboard images */
+
+.organizer-event-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.organizer-event-info img {
+    width: 70px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.organizer-event-info > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+
+/* Organizer registration images */
+
+.registration-tournament-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.registration-tournament-cell img {
+    width: 55px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 7px;
+}
+
+
+/* User tournament details image */
+
+.detail-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.detail-hero-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.35;
+    z-index: 0;
+}
+
+.detail-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(7, 9, 13, 0.92),
+        rgba(7, 9, 13, 0.35)
+    );
+    z-index: 1;
+}
+
+.detail-hero-content,
+.detail-hero > .btn {
+    position: relative;
+    z-index: 2;
+}
+/* UNREGISTER BUTTON */
+
+.btn-unregister {
+    background: rgba(255, 91, 118, 0.08);
+    color: #ff7188;
+    border: 1px solid rgba(255, 91, 118, 0.35);
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.btn-unregister:hover {
+    background: rgba(255, 91, 118, 0.18);
+    border-color: #ff7188;
+    transform: translateY(-2px);
+}

@@ -1,7 +1,18 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { useStore, formatDate, formatTime } from './store.jsx';
 
+import { useStore, formatDate, formatTime } from './store.jsx';
+// Automatically select image based on game
+export function getGameImage(game) {
+    const images = {
+        "Call of Duty": "/assets/images/cod.jpg",
+        "Free Fire": "/assets/images/free-fire.jpg",
+        "Valorant": "/assets/images/valorant.jpg",
+        "Fortnite": "/assets/images/fortnite.jpg"
+    };
+
+    return images[game] || "/assets/images/hero-gaming.jpg";
+}
 export function Brand({ subtitle = 'Tournament Portal', to = '/' }) {
   return (
     <Link className="brand" to={to} aria-label="GameZone home">
@@ -58,7 +69,12 @@ export function DashboardHeader({ role, active }) {
 }
 
 export function TournamentCard({ tournament, user, showRegister = true }) {
-  const { registrations, registerForTournament, notify } = useStore();
+  const {
+    registrations,
+    registerForTournament,
+    unregisterFromTournament,
+    notify
+} = useStore();
   const navigate = useNavigate();
   const count = registrations.filter((item) => item.tournamentId === tournament.id).length;
   const joined = Boolean(user && registrations.some((item) => item.tournamentId === tournament.id && item.userEmail === user.email));
@@ -71,11 +87,25 @@ export function TournamentCard({ tournament, user, showRegister = true }) {
     const result = registerForTournament(tournament.id);
     notify(result.message, result.ok ? 'success' : 'error');
   };
+  const handleUnregister = () => {
+    const result = unregisterFromTournament(tournament.id);
+    notify(result.message, result.ok ? 'success' : 'error');
+};
 
   return (
     <article className="tournament-card">
       <div className="tournament-banner">
-        <span className="game-label">{String(tournament.game).toUpperCase()}</span>
+
+    <img
+        className="tournament-banner-image"
+        src={getGameImage(tournament.game)}
+        alt={tournament.game}
+        loading="lazy"
+    />
+
+    <span className="game-label">
+        {String(tournament.game).toUpperCase()}
+    </span>
         <span className={`type-chip ${tournament.type === 'Free' ? 'type-free' : 'type-paid'}`}>{String(tournament.type).toUpperCase()}</span>
       </div>
       <div className="tournament-body">
@@ -89,8 +119,25 @@ export function TournamentCard({ tournament, user, showRegister = true }) {
         </div>
         <div className="card-actions">
           <Link className="btn btn-ghost" to={`/user/details?id=${encodeURIComponent(tournament.id)}`}>Details</Link>
-          {showRegister && user && <button className={`btn ${joined ? 'btn-ghost' : 'btn-primary'}`} onClick={handleRegister} disabled={joined}>{joined ? 'Registered' : 'Register'}</button>}
-        </div>
+{showRegister && user && (
+    joined ? (
+        <button
+            className="btn btn-unregister"
+            onClick={handleUnregister}
+            type="button"
+        >
+            Unregister
+        </button>
+    ) : (
+        <button
+            className="btn btn-primary"
+            onClick={handleRegister}
+            type="button"
+        >
+            Register
+        </button>
+    )
+)}        </div>
       </div>
     </article>
   );
@@ -114,7 +161,22 @@ export function TournamentTable({ tournaments, registrations, onEdit, onDelete, 
             const players = registrations.filter((entry) => entry.tournamentId === item.id).length;
             return (
               <tr key={item.id}>
-                <td><strong>{item.name}</strong><br /><small>{item.type}</small></td>
+                <td>
+    <div className="tournament-table-title">
+
+        <img
+            src={getGameImage(item.game)}
+            alt={item.game}
+        />
+
+        <span>
+            <strong>{item.name}</strong>
+            <br />
+            <small>{item.type}</small>
+        </span>
+
+    </div>
+</td>
                 <td>{item.game}</td>
                 {admin ? <><td>{formatDate(item.date)}</td><td className={item.type === 'Free' ? 'type-free' : 'type-paid'}>{item.type}</td></> : <><td>{formatDate(item.date)}<br />{formatTime(item.time)}</td><td className={`status-${String(item.status || 'Upcoming').toLowerCase()}`}>{item.status || 'Upcoming'}</td></>}
                 <td>{players}/{item.slots}</td>
